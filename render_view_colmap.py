@@ -1,9 +1,8 @@
 import numpy as np
-from render_view_softmax import render_forward_splat
 from PIL import Image
 from os.path import join as pjoin
 from torchvision.transforms import ToPILImage, ToTensor
-from utils import read_binary_array, quaterion_to_rotation
+from utils import read_binary_array, quaterion_to_rotation, render_forward_splat
 import torch
 
 img_name = 'cam00.jpg'
