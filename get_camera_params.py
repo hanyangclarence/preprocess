@@ -26,24 +26,28 @@ for video in videos:
         # Get the camera folder name
         cam_folder = cam_file.split('/')[-1].split('.')[0]
         cam_pose = cam_poses[i]
-        cam2world = np.array(cam_pose[:15]).reshape(3, 5)[:,:4]
-        cam2world = np.concatenate([cam2world, np.array([[0, 0, 0, 1]])], axis=0)
-        intrinsics = np.array([
-            [cam_pose[14], 0.0, cam_pose[14]/2],
-            [0.0, cam_pose[14], cam_pose[14]/2],
-            [0.0, 0.0, 1.0],
-        ])
+        cam2world = np.array(cam_pose[:15]).reshape(3, 5)
 
-        depth_ranges = [0.1, 5.0]
-        with open(os.path.join(cam_dir, "%08d_cam.txt" % i), "w") as f:
+        # correct the rotation matrix order: llff to nerf
+        cam2world = np.concatenate([cam2world[:, 1:2], -cam2world[:, 0:1], cam2world[:, 2:3], cam2world[:, 3:]], axis=1)
+
+        extrinsic_mat = cam2world[:3, :4]
+        extrinsic_mat = np.concatenate([extrinsic_mat, np.array([[0, 0, 0, 1]])], axis=0)  # (4, 4)
+
+        h, w, f = cam2world[:, -1]
+        intrinsic_mat = np.array([[f, 0, w/2], [0, f, h/2], [0, 0, 1]])
+
+        depth_ranges = cam_pose[15:17]
+
+        with open(os.path.join(cam_dir, f"{cam_folder}.txt"), "w") as f:
             f.write("extrinsic\n")
             for j in range(4):
                 for k in range(4):
-                    f.write(str(cam2world[j, k]) + " ")
+                    f.write(str(extrinsic_mat[j, k]) + ", ")
                 f.write("\n")
             f.write("\nintrinsic\n")
             for j in range(3):
                 for k in range(3):
-                    f.write(str(intrinsics[j, k]) + " ")
+                    f.write(str(intrinsic_mat[j, k]) + ", ")
                 f.write("\n")
             f.write("\n%f %f \n" % (depth_ranges[0], depth_ranges[1]))
