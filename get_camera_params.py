@@ -5,7 +5,7 @@ import os
 
 # Specify the path to the .npy file
 videos = [
-    'coffee_martini',
+    'flame_steak',
 ]
 for video in videos:
     video_path = f'/mnt/d/local_documentation/ChuangGan_3D/dataset/neural_3d_video/{video}'
