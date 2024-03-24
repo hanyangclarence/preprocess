@@ -21,10 +21,17 @@ def render_forward_splat(src_imgs, src_depths, R_src, t_src, K_src, R_dst, t_dst
     K_src_inv = K_src.inverse()
     R_dst_inv = R_dst.inverse()
 
-    # convert nerf space to colmap space
+    # some strange conversion...
+
+    # if camera pose is from colmap:
     M = torch.eye(3)
+    M[0, 0] = -1.0
     M[1, 1] = -1.0
-    M[2, 2] = -1.0
+
+    # if camera pose is from nerf/opengl:
+    # M = torch.eye(3)
+    # M[1, 1] = -1.0
+    # M[2, 2] = -1.0
 
     x = np.arange(src_imgs[0].shape[1])
     y = np.arange(src_imgs[0].shape[0])
@@ -223,12 +230,12 @@ def get_camera_parameters_from_colmap(path):
         t = c2w[:, -1]
 
         # transform camera space to nerf space
-        R = torch.tensor([
-            [1, 0, 0],
-            [0, -1, 0],
-            [0, 0, -1]
-        ], dtype=torch.float32) @ R
-        t = torch.tensor([0., -1., -1.]) * t
+        # R = torch.tensor([
+        #     [-1, 0, 0],
+        #     [0, 1, 0],
+        #     [0, 0, 1]
+        # ], dtype=torch.float32) @ R
+        # t = torch.tensor([-1., 1., 1.]) * t
 
         f = float(lines[7].strip().split(' ')[0])
         half_w = float(lines[7].strip().split(' ')[-1])
