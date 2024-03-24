@@ -1,0 +1,12 @@
+
+npl:
+srun --gres=gpu:8 --cpus-per-task=4 -N 1 --mem=500G --time 06:00:00 --pty bash
+srun --job-name yhhh --gres=gpu:1 --cpus-per-task=4 -N 1 --mem=100G --time 06:00:00 --pty
+
+srun --cpus-per-task=4 -N 1 --mem=100G --time 06:00:00 --pty bash
+
+dcs:
+source ~/.bashrc_dcs
+salloc -N 1 --gres=gpu:6 -t 180
+
+salloc -N 1 -t 360

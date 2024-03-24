@@ -26,7 +26,11 @@ if __name__ == '__main__':
         ref_cam_path = pjoin(scan_dir, 'cams', f'{reference_camera_id}_cam.txt')
         camera_pose_dir = pjoin(scan_dir, 'cams')
         result_save_dir = pjoin(scan_dir, 'rendered_views')
+        mask_save_dir = pjoin(scan_dir, 'masks')
+        disp_save_dir = pjoin(scan_dir, 'disps')
         os.makedirs(result_save_dir, exist_ok=True)
+        os.makedirs(mask_save_dir, exist_ok=True)
+        os.makedirs(disp_save_dir, exist_ok=True)
 
         dp, scale = read_pfm(ref_depth_path)
         dp = dp.squeeze()  # [H, W]
@@ -62,5 +66,5 @@ if __name__ == '__main__':
             disp = ToPILImage()(warp_disp[0])
             mask = ToPILImage()(warp_mask[0])
             feature.save(pjoin(result_save_dir, f'feature_{cam_id}.jpg'))
-            disp.save(pjoin(result_save_dir, f'disp_{cam_id}.jpg'))
-            mask.save(pjoin(result_save_dir, f'mask_{cam_id}.jpg'))
+            disp.save(pjoin(disp_save_dir, f'disp_{cam_id}.jpg'))
+            mask.save(pjoin(mask_save_dir, f'mask_{cam_id}.jpg'))
