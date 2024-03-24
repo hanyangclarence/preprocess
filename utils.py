@@ -192,7 +192,7 @@ def read_pfm(filename: str) -> Tuple[np.ndarray, float]:
     return data, scale
 
 
-def get_camera_parameters(path):
+def get_camera_parameters_from_opengl(path):
     with open(path, 'r') as f:
         lines = f.readlines()
         c2w = torch.tensor([
@@ -206,6 +206,33 @@ def get_camera_parameters(path):
         f = float(lines[7].strip().split(', ')[0])
         half_w = float(lines[7].split(', ')[-2])
         half_h = float(lines[8].split(', ')[-2])
+        hwf = torch.tensor([half_h * 2, half_w * 2, f])  # 3
+
+        return R, t, hwf
+
+
+def get_camera_parameters_from_colmap(path):
+    with open(path, 'r') as f:
+        lines = f.readlines()
+        c2w = torch.tensor([
+            [float(x.strip()) for x in lines[1].strip().split(' ')],
+            [float(x.strip()) for x in lines[2].strip().split(' ')],
+            [float(x.strip()) for x in lines[3].strip().split(' ')]
+        ])  # 3x4
+        R = c2w[:, :3]
+        t = c2w[:, -1]
+
+        # transform camera space to nerf space
+        R = torch.tensor([
+            [1, 0, 0],
+            [0, -1, 0],
+            [0, 0, -1]
+        ], dtype=torch.float32) @ R
+        t = torch.tensor([0., -1., -1.]) * t
+
+        f = float(lines[7].strip().split(' ')[0])
+        half_w = float(lines[7].strip().split(' ')[-1])
+        half_h = float(lines[8].strip().split(' ')[-1])
         hwf = torch.tensor([half_h * 2, half_w * 2, f])  # 3
 
         return R, t, hwf
