@@ -40,6 +40,6 @@ def process_videos(folder_path, save_folder):
             extract_frames(video_path, save_folder)
 
 
-video_folder = '/mnt/d/local_documentation/ChuangGan_3D/dataset/neural_3d_video/coffee_martini/'
-save_folder = '/mnt/d/local_documentation/ChuangGan_3D/dataset/neural_3d_video/coffee_martini/video_frames/'
+video_folder = '/mnt/d/local_documentation/ChuangGan_3D/dataset/neural_3d_video/flame_steak'
+save_folder = '/mnt/d/local_documentation/ChuangGan_3D/dataset/neural_3d_video/flame_steak/video_frames/'
 process_videos(video_folder, save_folder)
