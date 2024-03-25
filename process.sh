@@ -2,6 +2,10 @@ DATASET_PATH="../dataset/neural_3d_video"
 VIDEOS="
 coffee_martini
 sear_steak
+cook_spinach
+cut_roasted_beef
+flame_salmon_1
+flame_steak
 "
 REF_CAM_ID="00000000"
 
