@@ -18,21 +18,6 @@ def render_forward_splat(src_imgs, src_depths, R_src, t_src, K_src, R_dst, t_dst
 
     batch_size = src_imgs.shape[0]
 
-    K_src_inv = K_src.inverse()
-    R_dst_inv = R_dst.inverse()
-
-    # some strange conversion...
-
-    # if camera pose is from colmap:
-    M = torch.eye(3)
-    M[0, 0] = -1.0
-    M[1, 1] = -1.0
-
-    # if camera pose is from nerf/opengl:
-    # M = torch.eye(3)
-    # M[1, 1] = -1.0
-    # M[2, 2] = -1.0
-
     x = np.arange(src_imgs[0].shape[1])
     y = np.arange(src_imgs[0].shape[0])
     coord = np.stack(np.meshgrid(x, y), -1)
@@ -43,16 +28,17 @@ def render_forward_splat(src_imgs, src_depths, R_src, t_src, K_src, R_dst, t_dst
 
     depth = src_depths[:, :, :, None, None]
 
-    # from reference to target viewpoint
+    K_src_inv = K_src.inverse()
+    # source pixel coordinate to source camera coordinate
     pts_3d_ref = depth * K_src_inv[None, None, None, Ellipsis] @ coord
     # get the relative rotation and transition
-    R = M @ R_dst_inv @ R_src @ M
-    t = M @ R_dst_inv @ (t_src - t_dst)
+    R = R_dst @ R_src.inverse()
+    t = t_dst - R_dst @ R_src.inverse() @ t_src
+    # source camera coordinate to target camera coordinate
     pts_3d_tgt = R[None, None, None, Ellipsis] @ pts_3d_ref + t[None, None, None, :, None]
-
+    # target camera coordinate to target pixel coordinate
     points = K_dst[None, None, None, Ellipsis] @ pts_3d_tgt
     points = points.squeeze(-1)
-
     new_z = points[:, :, :, [2]].clone().permute(0, 3, 1, 2)  # b,1,h,w
     points = points / torch.clamp(points[:, :, :, [2]], 1e-8, None)
 
@@ -77,9 +63,9 @@ def render_forward_splat(src_imgs, src_depths, R_src, t_src, K_src, R_dst, t_dst
 
     if get_epipolar_mask:
         # calculate the source camera position in the target camera space
-        cam_3d_ref = M @ torch.tensor([0, 0, 0], dtype=K_src.dtype, device=K_src.device)
-        cam_3d_tgt = R_dst_inv @ R_src @ cam_3d_ref + R_dst_inv @ (t_src - t_dst)
-        cam_3d_tgt = K_dst @ M @ cam_3d_tgt
+        cam_3d_ref = torch.tensor([0, 0, 0], dtype=K_src.dtype, device=K_src.device)
+        cam_3d_tgt = R @ cam_3d_ref + t
+        cam_3d_tgt = K_dst @ cam_3d_tgt
         cam_2d_tgt = cam_3d_tgt / torch.clamp(cam_3d_tgt[2], 1e-8, None)
 
         # get the epipolar mask
@@ -228,14 +214,6 @@ def get_camera_parameters_from_colmap(path):
         ])  # 3x4
         R = c2w[:, :3]
         t = c2w[:, -1]
-
-        # transform camera space to nerf space
-        # R = torch.tensor([
-        #     [-1, 0, 0],
-        #     [0, 1, 0],
-        #     [0, 0, 1]
-        # ], dtype=torch.float32) @ R
-        # t = torch.tensor([-1., 1., 1.]) * t
 
         f = float(lines[7].strip().split(' ')[0])
         half_w = float(lines[7].strip().split(' ')[-1])

@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 if __name__ == '__main__':
     folder_path = '../PatchmatchNet_tool/frame0001'
-    reference_camera_id: str = '00000000'
+    reference_camera_id: str = '00000007'
 
     ref_img_path = pjoin(folder_path, 'images', f'{reference_camera_id}.jpg')
     ref_depth_path = pjoin(folder_path, 'depth_est', f'{reference_camera_id}.pfm')
