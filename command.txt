@@ -17,7 +17,7 @@ dos2unix scripts/dynerf_frame_extraction.sh
 
 
 download:
-scp -P 12345 -r zfchen@150.136.210.72:/home/zfchen/yanghan/dataset/neural_3d_video/coffee_martini/scans/frame0001/depth_est ./
+scp -P 12345 -r zfchen@150.136.210.72:/home/zfchen/yanghan/dataset/enerf/actor2_3/example ./
 
 upload
 scp -P 12345 -r ./example.zip  zfchen@150.136.210.72:/home/zfchen/yanghan/dataset/neural_3d_video/coffee_martini/
