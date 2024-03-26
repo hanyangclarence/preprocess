@@ -9,21 +9,28 @@ from tqdm import tqdm
 if __name__ == '__main__':
     # folder_path = '../PatchmatchNet_tool/enerf_frame0001'
     # reference_camera_id: str = '00000000'
-    # result_save_dir = 'rendered_results_enerf'
+    # result_save_dir = 'rendered_results_enerf_zoedepth'
     folder_path = '../dataset/neural_3d_video/coffee_martini/scans/frame0001/'
     reference_camera_id: str = '00000000'
-    result_save_dir = 'rendered_results_n3dv_colmap'
+    result_save_dir = 'rendered_results_n3dv_zoedepth'
+
+    ref_depth_path = 'n3dv_depth_zoedepth.png'
 
     ref_img_path = pjoin(folder_path, 'images', f'{reference_camera_id}.jpg')
-    ref_depth_path = pjoin(folder_path, 'depth_est', f'{reference_camera_id}.pfm')
     ref_cam_path = pjoin(folder_path, 'cams', f'{reference_camera_id}_cam.txt')
     camera_pose_dir = pjoin(folder_path, 'cams')
     os.makedirs(result_save_dir, exist_ok=True)
 
-    dp, scale = read_pfm(ref_depth_path)
-    dp = dp.squeeze()  # [H, W]
-    d_h, d_w = dp.shape
-    depth_map = torch.tensor(dp.copy())
+    # load the 16-bit depth map
+    depth_map = Image.open(ref_depth_path)
+    depth_map = ToTensor()(depth_map)
+    depth_map = depth_map.squeeze()  # [H, W]
+    depth_map = depth_map.to(torch.float32)
+    depth_map /= 256.0
+    d_h, d_w = depth_map.shape
+
+    # tempt operation: scale the depth map to 8.09 and 88.04
+    depth_map = 8.09 + (88.04 - 8.09) * (depth_map - depth_map.min()) / (depth_map.max() - depth_map.min())
 
     img = Image.open(ref_img_path)
     img = img.resize((d_w, d_h))
